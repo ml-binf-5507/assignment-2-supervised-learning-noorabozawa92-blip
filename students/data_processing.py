@@ -38,7 +38,13 @@ def load_heart_disease_data(filepath):
     # Hint: Use pd.read_csv()
     # Hint: Check if file exists and raise helpful error if not
     # TODO: Implement data loading
-    pass
+    try:
+        df = pd.read_csv(filepath)
+    except FileNotFoundError:
+        raise FileNotFoundError("File not found!")
+    if df.empty:
+        raise ValueError("CSV file is empty")
+    return df
 
 
 def preprocess_data(df):
@@ -59,7 +65,10 @@ def preprocess_data(df):
     # - Handle missing values
     # - Encode categorical variables (e.g., sex, cp, fbs, etc.)
     # - Ensure all columns are numeric
-    pass
+    df = df.dropna()
+    df = pd.get_dummies(df)
+    df = df.apply(pd.to_numeric)
+    return df
 
 
 def prepare_regression_data(df, target='chol'):
@@ -82,7 +91,10 @@ def prepare_regression_data(df, target='chol'):
     # - Remove rows with missing chol values
     # - Exclude chol from features
     # - Return X (features) and y (target)
-    pass
+    df = df.dropna(subset=[target])
+    y = df[target]
+    X = df.drop(columns=[target])
+    return X, y
 
 
 def prepare_classification_data(df, target='num'):
@@ -106,7 +118,9 @@ def prepare_classification_data(df, target='num'):
     # - Exclude target from features
     # - Exclude chol from features
     # - Return X (features) and y (target)
-    pass
+    y = (df[target]>0).astype(int)
+    X = df.drop(columns=[target, 'chol'])
+    return X, y
 
 
 def split_and_scale(X, y, test_size=0.2, random_state=42):
@@ -135,4 +149,11 @@ def split_and_scale(X, y, test_size=0.2, random_state=42):
     # - Fit StandardScaler on training data only
     # - Transform both train and test data
     # - Return scaled data and scaler object
-    pass
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=test_size, random_state=random_state
+    )
+    scaler = StandardScaler()
+    X_train_scaled = scaler.fit_transform(X_train)
+    X_test_scaled = scaler.transform(X_test)
+    return X_train_scaled, X_test_scaled, y_train, y_test, scaler
+    

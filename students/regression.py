@@ -38,7 +38,20 @@ def train_elasticnet_grid(X_train, y_train, l1_ratios, alphas):
     #   - Calculate R² score on training data
     #   - Store results
     # - Return DataFrame with results
-    pass
+    results = []
+    for l1 in l1_ratios:
+        for alpha in alphas:
+            model = ElasticNet(l1_ratio=l1, alpha=alpha, max_iter=5000)
+            model.fit(X_train, y_train)
+            y_pred = model.predict(X_train)
+            r2 = r2_score(y_train, y_pred)
+            results.append({
+                "l1_ratio":l1,
+                "alpha":alpha,
+                "r2_score": r2,
+                "model": model
+            })
+    return pd.DataFrame(results)
 
 
 def create_r2_heatmap(results_df, l1_ratios, alphas, output_path=None):
@@ -68,7 +81,15 @@ def create_r2_heatmap(results_df, l1_ratios, alphas, output_path=None):
     # - Add colorbar
     # - Save to output_path if provided
     # - Return figure object
-    pass
+    pivot = results_df.pivot(index="alpha", columns="l1_ratio", values="r2_score")
+    fig, ax = plt.subplots()
+    sns.heatmap(pivot, annot=True, cmap="viridis", ax=ax)
+    ax.set_xlabel("l1 Ration")
+    ax.set_ylabel("Alpha")
+    ax.set_tiitle("R^2 Score")
+    if output_path:
+        plt.savefig(output_path)
+    return fig
 
 
 def get_best_elasticnet_model(X_train, y_train, X_test, y_test, 
@@ -111,4 +132,20 @@ def get_best_elasticnet_model(X_train, y_train, X_test, y_test,
     # - Train models using train_elasticnet_grid
     # - Select model with highest test R² (not training R²)
     # - Return dictionary with best model and parameters
-    pass
+    results_df = train_elasticnet_grid(X_train, y_train, l1_ratios, alphas)
+    best_row =  results_df.loc[results_df["r2_score"].idxmax()]
+    best_model = best_row["model"]
+    best_l1 = best_row["l1_ratio"]
+    best_alpha = best_row["alpha"]
+    train_pred = best_model.predict(X_train)
+    train_r2 = r2_score(y_train, train_pred)
+    test_pred = best_model.predict(X_test)
+    test_r2 = r2_score(y_test, test_pred)
+    return {
+        "model": best_model,
+        "best_l1_ratio":best_l1,
+        "best_alpha": best_alpha,
+        "train_r2": train_r2,
+        "test_r2": test_r2,
+        "results_df": results_df
+    }

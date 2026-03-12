@@ -42,7 +42,10 @@ def train_logistic_regression_grid(X_train, y_train, param_grid=None):
     # - Use GridSearchCV with cv=5
     # - Fit on training data
     # - Return fitted GridSearchCV object
-    pass
+    model = LogisticRegression(max_iter=1000)
+    grid = GridSearchCV(model, param_grid, cv=5)
+    grid.fit(X_train, y_train)
+    return grid
 
 
 def train_knn_grid(X_train, y_train, param_grid=None):
@@ -78,7 +81,10 @@ def train_knn_grid(X_train, y_train, param_grid=None):
     # - Use GridSearchCV with cv=5
     # - Fit on training data
     # - Return fitted GridSearchCV object
-    pass
+    model = KNeighborsClassifier()
+    grid = GridSearchCV(model, param_grid, cv=5)
+    grid.fit(X_train, y_train)
+    return grid
 
 
 def get_best_logistic_regression(X_train, y_train, X_test, y_test, param_grid=None):
@@ -110,7 +116,16 @@ def get_best_logistic_regression(X_train, y_train, X_test, y_test, param_grid=No
     # - Use train_logistic_regression_grid
     # - Extract best model
     # - Return dictionary
-    pass
+    grid = train_logistic_regression_grid(X_train, y_train, param_grid)
+    best_model = grid.best_estimator_
+    best_params = grid.best_params_
+    cv_results_df = pd.DataFrame(grid.cv_results_)
+    return {
+        "model":best_model,
+        "best_params": best_params,
+        "cv_results_df": cv_results_df
+    }
+
 
 
 def get_best_knn(X_train, y_train, X_test, y_test, param_grid=None):
@@ -143,4 +158,14 @@ def get_best_knn(X_train, y_train, X_test, y_test, param_grid=None):
     # - Use train_knn_grid
     # - Extract best model and best_k
     # - Return dictionary
-    pass
+    grid = train_knn_grid(X_train, y_train, param_grid)
+    best_model = grid.best_estimator_
+    best_params = grid.best_params_
+    best_k = best_params["n_neighbors"]
+    cv_results_df =  pd.DataFrame(grid.cv_results_)
+    return {
+        "model": best_model,
+        "best_params": best_params,
+        "best_k": best_k,
+        "cv_results_df": cv_results_df
+    }

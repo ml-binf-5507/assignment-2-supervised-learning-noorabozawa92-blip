@@ -86,7 +86,7 @@ def create_r2_heatmap(results_df, l1_ratios, alphas, output_path=None):
     sns.heatmap(pivot, annot=True, cmap="viridis", ax=ax)
     ax.set_xlabel("l1 Ration")
     ax.set_ylabel("Alpha")
-    ax.set_tiitle("R^2 Score")
+    ax.set_title("R^2 Score")
     if output_path:
         plt.savefig(output_path)
     return fig
